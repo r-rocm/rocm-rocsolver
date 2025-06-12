@@ -1,0 +1,49 @@
+Source: rocm-rocsolver
+Section: devel
+Priority: optional
+Maintainer: CHEN Xuan <chenxuan@iscas.ac.cn>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ libblas-dev,
+ pkg-config,
+ rocm-cmake,
+ rocm-core,
+ rocm-env,
+ rocm-hip-on-rocclr-dev,
+ rocm-llvm,
+ rocm-rocblas-dev,
+ rocm-rocsparse-dev,
+Standards-Version: 4.7.0
+Homepage: https://github.com/ROCm/rocSOLVER
+Vcs-Browser: https://github.com/r-rocm/rocm-rocsolver
+Vcs-Git: https://github.com/r-rocm/rocm-rocsolver.git
+
+Package: rocm-rocsolver
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ rocm-cmake,
+ rocm-core,
+ rocm-env,
+ rocm-hip-on-rocclr,
+ rocm-rocblas,
+ rocm-rocsparse,
+Description: Next generation LAPACK implementation for ROCm platform  - binary
+ rocSOLVER is a work-in-progress implementation of a subset of LAPACK
+ functionality on the ROCm platform.
+
+Package: rocm-rocsolver-dev
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ rocm-hip-on-rocclr-dev,
+ rocm-rocblas-dev,
+ rocm-rocsolver,
+ rocm-rocsparse-dev,
+Description: Next generation LAPACK implementation for ROCm platform  - dev
+ rocSOLVER is a work-in-progress implementation of a subset of LAPACK
+ functionality on the ROCm platform.
