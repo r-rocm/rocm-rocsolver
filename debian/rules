@@ -6,6 +6,11 @@ CFLAGS_BUILDING := -O2
 export DEB_CFLAGS_MAINT_APPEND = $(CFLAGS_BUILDING)
 export DEB_CXXFLAGS_MAINT_APPEND = $(CFLAGS_BUILDING)
 
+# https://bugs-devel.debian.org/cgi-bin/bugreport.cgi?bug=1065439
+# filtering out flags that are not supported
+CXXFLAGS := $(subst -fstack-protector-strong,-Xarch_host -fstack-protector-strong,$(CXXFLAGS))
+CXXFLAGS := $(subst -fcf-protection,-Xarch_host -fcf-protection,$(CXXFLAGS))
+
 PKG_NAME=rocm-rocsolver
 
 # ROCM_VERSION=$(DEB_VERSION_UPSTREAM) // cannot be used in debuild
@@ -21,8 +26,8 @@ DEB_INST_DIR := $(TOP_DIR)/debian/tmp
 
 REVYOS_ROCM_CMAKE_PARAMS := -S $(DEB_SRC_PATH) -B $(DEB_BUILD_PATH)
 REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_INSTALL_PREFIX=$(ROCM_PATH)
-REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_C_COMPILER=$(ROCM_PATH)/bin/clang
-REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_CXX_COMPILER=$(ROCM_PATH)/bin/clang++
+REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_C_COMPILER=$(ROCM_PATH)/bin/hipcc
+REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_CXX_COMPILER=$(ROCM_PATH)/bin/hipcc
 REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_BUILD_TYPE=Release
 REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_VERBOSE_MAKEFILE=TRUE
 REVYOS_ROCM_CMAKE_PARAMS += -DCMAKE_PREFIX_PATH="${ROCM_PATH};${ROCM_PATH}/share/rocm/cmake/;${ROCM_PATH}/share/rocmcmakebuildtools/cmake"
@@ -42,21 +47,8 @@ GPU_TARGETS="gfx942"
 override_dh_auto_configure:
 	cmake $(REVYOS_ROCM_CMAKE_PARAMS) \
 		$(ROCM_MATH_CMAKE_PARAMS) \
-		-DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake \
-		-DROCM_DIR=$(ROCM_PATH) \
-		-DBUILD_CLIENTS_TESTS=OFF \
-		-DBUILD_CLIENTS_BENCHMARKS=OFF \
-		-DBUILD_CLIENTS_SAMPLES=OFF \
-		-DBUILD_CLIENTS_TESTS_OPENMP=OFF \
-		-DBUILD_FORTRAN_CLIENTS=OFF \
-		-DLINK_BLIS=ON \
-		-DBLAS_LIBRARY=cblas \
-		-DBUILD_WITH_TENSILE=OFF \
 		-DAMDGPU_TARGETS=$(GPU_TARGETS) \
-		-DBUILD_BENCHMARK=OFF \
-		-DBUILD_SHARED_LIBS=ON \
-		-DCMAKE_MODULE_PATH="$(ROCM_PATH)/lib/cmake/hip;$(ROCM_PATH)/hip/cmake"
-
+		-DBUILD_CLIENTS_TESTS=OFF
 
 override_dh_auto_build:
 	cmake --build $(DEB_BUILD_PATH) -- $(MAKEOPTS)
