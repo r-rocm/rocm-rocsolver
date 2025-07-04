@@ -1,3 +1,9 @@
+rocm-rocsolver (6.2.4-2) unstable; urgency=medium
+
+  * Add all GPU targets.
+
+ -- CHEN Xuan <chenxuan@iscas.ac.cn>  Fri, 04 Jul 2025 09:47:06 +0800
+
 rocm-rocsolver (6.2.4-1) unstable; urgency=medium
 
   * Initial release.
