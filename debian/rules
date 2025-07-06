@@ -39,13 +39,18 @@ ROCM_MATH_CMAKE_PARAMS += -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF
 
 # GPU_TARGETS="gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1030;gfx1100"
 
+# TODO: it takes too long to build all gpu targets
+GPU_TARGETS="gfx1030;gfx1100"
+
 %:
 	dh $@
 
 override_dh_auto_configure:
 	cmake $(REVYOS_ROCM_CMAKE_PARAMS) \
 		$(ROCM_MATH_CMAKE_PARAMS) \
-		-DBUILD_CLIENTS_TESTS=OFF
+		-DBUILD_CLIENTS_TESTS=OFF \
+		-DBUILD_OFFLOAD_COMPRESS=ON \
+		-DAMDGPU_TARGETS=$(GPU_TARGETS)
 
 override_dh_auto_build:
 	cmake --build $(DEB_BUILD_PATH) -- $(MAKEOPTS)
