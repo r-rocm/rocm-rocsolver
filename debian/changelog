@@ -1,3 +1,9 @@
+rocm-rocsolver (6.4.2-1) trixie; urgency=medium
+
+  * Release 6.4.2-1
+
+ --  <chenxuan@iscas.ac.cn>  Tue, 29 Jul 2025 11:53:43 +0800
+
 rocm-rocsolver (6.2.4-2) unstable; urgency=medium
 
   * Add specific GPU targets.

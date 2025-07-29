@@ -17,8 +17,8 @@ Build-Depends:
  rocm-rocsparse-dev,
 Standards-Version: 4.7.0
 Homepage: https://github.com/ROCm/rocSOLVER
-Vcs-Browser: https://github.com/r-rocm/rocm-rocsolver
-Vcs-Git: https://github.com/r-rocm/rocm-rocsolver.git
+Vcs-Browser: https://github.com/revyos-rocm/rocm-rocsolver
+Vcs-Git: https://github.com/revyos-rocm/rocm-rocsolver.git
 
 Package: rocm-rocsolver
 Architecture: any
