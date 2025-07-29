@@ -1,5 +1,5 @@
 /************************************************************************
- * Copyright (C) 2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2024-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,10 @@
 #include "rocsolver/rocsolver.h"
 
 ROCSOLVER_BEGIN_NAMESPACE
+
+// TODO: using macro STEDCX_EXTERNAL_GEMM = false for now. We can enable the use of
+// external gemm updates once the development is completed for stedc.
+#define STEDCX_EXTERNAL_GEMM false
 
 /***************** Device auxiliary functions *****************************************/
 /**************************************************************************************/
@@ -548,7 +552,7 @@ rocblas_status rocsolver_stedcx_template(rocblas_handle handle,
 
     // 3. merge phase
     //----------------
-    size_t lmemsize1 = sizeof(S) * maxblks;
+    size_t lmemsize1 = sizeof(S) * 2 * STEDC_BDIM;
     size_t lmemsize3 = sizeof(S) * STEDC_BDIM;
     rocblas_int numgrps3 = ((n - 1) / maxblks + 1) * maxblks;
 
@@ -565,29 +569,29 @@ rocblas_status rocsolver_stedcx_template(rocblas_handle handle,
             the computation of some of them does not seem to make much difference. **/
 
         // a. prepare secular equations
+        rocblas_int numgrps2 = 1 << (maxlevs - 1 - k);
         ROCSOLVER_LAUNCH_KERNEL((stedc_mergePrepare_kernel<rocsolver_stedc_mode_bisection, S>),
-                                dim3(1, STEDC_NUM_SPLIT_BLKS, batch_count), dim3(maxblks),
+                                dim3(numgrps2, STEDC_NUM_SPLIT_BLKS, batch_count), dim3(STEDC_BDIM),
                                 lmemsize1, stream, k, n, D, strideD, E, strideE, tempvect, 0, ldt,
-                                strideT, tmpz, tempgemm, splits, eps, ssfmin, ssfmax);
+                                strideT, tmpz, tempgemm, splits, eps);
 
         // b. solve to find merged eigen values
-        rocblas_int numgrps2 = 1 << (maxlevs - 1 - k);
         ROCSOLVER_LAUNCH_KERNEL((stedc_mergeValues_kernel<rocsolver_stedc_mode_bisection, S>),
                                 dim3(numgrps2, STEDC_NUM_SPLIT_BLKS, batch_count), dim3(STEDC_BDIM),
                                 0, stream, k, n, D, strideD, E, strideE, tmpz, tempgemm, splits,
                                 eps, ssfmin, ssfmax);
 
         // c. find merged eigen vectors
-        ROCSOLVER_LAUNCH_KERNEL((stedc_mergeVectors_kernel<rocsolver_stedc_mode_bisection, S>),
-                                dim3(numgrps3, STEDC_NUM_SPLIT_BLKS, batch_count), dim3(STEDC_BDIM),
-                                lmemsize3, stream, k, n, D, strideD, E, strideE, tempvect, 0, ldt,
-                                strideT, tmpz, tempgemm, splits, eps, ssfmin, ssfmax);
+        ROCSOLVER_LAUNCH_KERNEL(
+            (stedc_mergeVectors_kernel<rocsolver_stedc_mode_bisection, STEDCX_EXTERNAL_GEMM, S>),
+            dim3(numgrps3, STEDC_NUM_SPLIT_BLKS, batch_count), dim3(STEDC_BDIM), lmemsize3, stream,
+            k, n, D, strideD, E, strideE, tempvect, 0, ldt, strideT, tmpz, tempgemm, splits);
 
         // d. update level
         ROCSOLVER_LAUNCH_KERNEL((stedc_mergeUpdate_kernel<rocsolver_stedc_mode_bisection, S>),
                                 dim3(numgrps3, STEDC_NUM_SPLIT_BLKS, batch_count), dim3(STEDC_BDIM),
                                 lmemsize3, stream, k, n, D, strideD, tempvect, 0, ldt, strideT,
-                                tmpz, tempgemm, splits, eps, ssfmin, ssfmax);
+                                tmpz, tempgemm, splits);
     }
 
     // 4. update and sort

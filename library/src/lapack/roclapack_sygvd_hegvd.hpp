@@ -4,7 +4,7 @@
  *     Univ. of Tennessee, Univ. of California Berkeley,
  *     Univ. of Colorado Denver and NAG Ltd..
  *     December 2016
- * Copyright (C) 2020-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2020-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,8 @@
 ROCSOLVER_BEGIN_NAMESPACE
 
 template <bool BATCHED, bool STRIDED, typename T, typename S>
-void rocsolver_sygvd_hegvd_getMemorySize(const rocblas_eform itype,
+void rocsolver_sygvd_hegvd_getMemorySize(rocblas_handle handle,
+                                         const rocblas_eform itype,
                                          const rocblas_evect evect,
                                          const rocblas_fill uplo,
                                          const rocblas_int n,
@@ -94,9 +95,9 @@ void rocsolver_sygvd_hegvd_getMemorySize(const rocblas_eform itype,
     *size_work4 = std::max(*size_work4, temp4);
 
     // requirements for calling SYEV/HEEV
-    rocsolver_syevd_heevd_getMemorySize<BATCHED, T, S>(evect, uplo, n, batch_count, &unused, &temp1,
-                                                       &temp2, &temp3, size_tmpz, size_splits,
-                                                       &temp4, size_tau, &temp5);
+    rocsolver_syevd_heevd_getMemorySize<BATCHED, T, S>(handle, evect, uplo, n, batch_count, &unused,
+                                                       &temp1, &temp2, &temp3, size_tmpz,
+                                                       size_splits, &temp4, size_tau, &temp5);
     *size_work1 = std::max(*size_work1, temp1);
     *size_work2 = std::max(*size_work2, temp2);
     *size_work3 = std::max(*size_work3, temp3);
@@ -130,11 +131,11 @@ rocblas_status rocsolver_sygvd_hegvd_template(rocblas_handle handle,
                                               const rocblas_fill uplo,
                                               const rocblas_int n,
                                               U A,
-                                              const rocblas_int shiftA,
+                                              const rocblas_stride shiftA,
                                               const rocblas_int lda,
                                               const rocblas_stride strideA,
                                               U B,
-                                              const rocblas_int shiftB,
+                                              const rocblas_stride shiftB,
                                               const rocblas_int ldb,
                                               const rocblas_stride strideB,
                                               S* D,
@@ -186,9 +187,9 @@ rocblas_status rocsolver_sygvd_hegvd_template(rocblas_handle handle,
     T one = 1;
 
     // perform Cholesky factorization of B
-    rocsolver_potrf_template<BATCHED, STRIDED, T, S>(handle, uplo, n, B, shiftB, ldb, strideB, info,
-                                                     batch_count, scalars, work1, work2, work3,
-                                                     work4, (T*)pivots_workArr, iinfo, optim_mem);
+    rocsolver_potrf_template<BATCHED, STRIDED, T, rocblas_int, rocblas_int, S>(
+        handle, uplo, n, B, shiftB, ldb, strideB, info, batch_count, scalars, work1, work2, work3,
+        work4, (T*)pivots_workArr, iinfo, optim_mem);
 
     /** (TODO: Strictly speaking, computations should stop here is B is not positive definite.
         A should not be modified in this case as no eigenvalues or eigenvectors can be computed.

@@ -61,11 +61,21 @@ public:
 
     T* device_vector_setup()
     {
-        T* d;
+        T* d = nullptr;
         if((hipMalloc)(&d, bytes) != hipSuccess)
         {
             fmt::print(stderr, "Error allocating {} bytes ({} GB)\n", bytes, bytes >> 30);
             d = nullptr;
+        }
+        if(d != nullptr)
+        {
+            auto status = (hipMemset)(d, 0, bytes);
+            if(status != hipSuccess)
+            {
+                fmt::print(stderr, "error: {} ({}) at {}:{}\n", hipGetErrorString(status),
+                           static_cast<std::int32_t>(status), __FILE__, __LINE__);
+                rocblas_abort();
+            }
         }
         return d;
     }

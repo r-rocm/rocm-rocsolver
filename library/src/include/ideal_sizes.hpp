@@ -1,5 +1,5 @@
 /* **************************************************************************
- * Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright (C) 2019-2025 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,6 +30,37 @@
 /*! \file
     \brief ideal_sizes.hpp gathers all constants that can be tuned for performance.
  *********************************************************************************/
+
+#define BS1 256 // generic 1 dimensional thread-block size used to call common kernels
+#define BS2 32 // generic 2 dimensional thread-block size used to call common kernels
+
+/******************************* larf ****************************************
+*******************************************************************************/
+#ifndef LARF_SSKER_THREADS
+#define LARF_SSKER_THREADS 256 // must be 64, 128, 256, 512, or 1024
+#endif
+
+#ifndef LARF_SSKER_BLOCKS
+#define LARF_SSKER_BLOCKS 64
+#endif
+
+#ifndef LARF_SSKER_MAX_DIM
+#define LARF_SSKER_MAX_DIM 2048 // should be >= LARF_SSKER_THREADS
+#endif
+
+#ifndef LARF_SSKER_MIN_DIM
+#define LARF_SSKER_MIN_DIM 64 // should be >= LARF_SSKER_BLOCKS
+#endif
+
+/******************************* larfg ****************************************
+*******************************************************************************/
+#ifndef LARFG_SSKER_THREADS
+#define LARFG_SSKER_THREADS 256 // must be 64, 128, 256, 512, or 1024
+#endif
+
+#ifndef LARFG_SSKER_MAX_N
+#define LARFG_SSKER_MAX_N 2048
+#endif
 
 /***************** geqr2/geqrf and geql2/geqlf ********************************
 *******************************************************************************/
@@ -153,13 +184,24 @@
 
 /******************************* bdsqr ****************************************
 *******************************************************************************/
-/*! \brief Determines the maximum number of split diagonal blocks that BDSQR can process in parallel.
-    Must be at least 1.
+/*! \brief Determines the size at which rocSOLVER switches from updating singular vectors
+    in a single thread group, to using multiple thread groups. It also applies to the
+    corresponding batched and strided-batched routines.
 
-    \details BDSQR will use BDSQR_SPLIT_GROUPS thread groups in order to process diagonal blocks
-    in parallel. */
-#ifndef BDSQR_SPLIT_GROUPS
-#define BDSQR_SPLIT_GROUPS 5
+    \details When nv, nu, and nc are less than or equal to BDSQR_SWITCH_SIZE, BDSQR will update
+    the singular vectors in a single thread group. Otherwise, BDSQR will launch a dedicated kernel
+    with multiple thread groups.*/
+#ifndef BDSQR_SWITCH_SIZE
+#define BDSQR_SWITCH_SIZE 512
+#endif
+
+/*! \brief Determines the number of iterations that BDSQR will execute between device synchronizations
+    in the multi-kernel algorithm.
+
+    \details BDSQR will run an inner loop BDSQR_ITERS_PER_SYNC at a time, before synchronizing with the
+    device to check if the stopping criterion has been met. */
+#ifndef BDSQR_ITERS_PER_SYNC
+#define BDSQR_ITERS_PER_SYNC 10
 #endif
 
 /******************************* gesvd ****************************************
@@ -180,7 +222,7 @@
     when using the blocked algorithm (SYTRD/HETRD). It also applies to the
     corresponding batched and strided-batched routines.*/
 #ifndef xxTRD_BLOCKSIZE
-#define xxTRD_BLOCKSIZE 32
+#define xxTRD_BLOCKSIZE 64
 #endif
 
 /*! \brief Determines the size at which rocSOLVER switches from
@@ -191,7 +233,7 @@
     the rest of the matrix has no more than xxTRD_xxTD2_SWITCHSIZE rows or columns; at this point the last block,
     if any, will be reduced with the unblocked algorithm (SYTD2/HETD2).*/
 #ifndef xxTRD_xxTD2_SWITCHSIZE
-#define xxTRD_xxTD2_SWITCHSIZE 64
+#define xxTRD_xxTD2_SWITCHSIZE 256
 #endif
 
 /***************** sygs2/sygst and hegs2/hegst ********************************

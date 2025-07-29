@@ -5,11 +5,11 @@
 .. _logging-label:
 
 ******************************
-rocSOLVER Multi-level Logging
+rocSOLVER multi-level logging
 ******************************
 
 rocSOLVER provides logging facilities that can be used to output information on rocSOLVER function calls, 
-similar to `Logging in rocBLAS <https://rocm.docs.amd.com/projects/rocBLAS/en/latest/API_Reference_Guide.html#logging-in-rocblas>`_. 
+similar to `Logging in rocBLAS <https://rocm.docs.amd.com/projects/rocBLAS/en/latest/reference/logging.html>`_. 
 Three modes of logging are supported: trace logging, bench logging, and profile logging.
 
 .. note::
