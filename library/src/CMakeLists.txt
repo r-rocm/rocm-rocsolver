@@ -1,5 +1,5 @@
 # ##########################################################################
-# Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2019-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -87,6 +87,7 @@ set(rocsolver_lapack_source
   lapack/roclapack_potf2_batched.cpp
   lapack/roclapack_potf2_strided_batched.cpp
   lapack/roclapack_potrf.cpp
+  lapack/roclapack_potrf_info32.cpp
   lapack/roclapack_potrf_batched.cpp
   lapack/roclapack_potrf_strided_batched.cpp
   #- symmetric indefinite matrices
@@ -161,6 +162,12 @@ set(rocsolver_lapack_source
   lapack/roclapack_gesvd.cpp
   lapack/roclapack_gesvd_batched.cpp
   lapack/roclapack_gesvd_strided_batched.cpp
+  #- divide-and-conquer
+  lapack/roclapack_gesdd.cpp
+  lapack/roclapack_gesdd_batched.cpp
+  lapack/roclapack_gesdd_strided_batched.cpp
+  # lapack/roclapack_gesdd_notransv.cpp
+  # lapack/roclapack_gesdd_notransv_strided_batched.cpp
   #- jacobi
   lapack/roclapack_gesvdj.cpp
   lapack/roclapack_gesvdj_batched.cpp
@@ -230,6 +237,8 @@ set(rocsolver_auxiliary_source
   auxiliary/rocauxiliary_larf.cpp
   auxiliary/rocauxiliary_larft.cpp
   auxiliary/rocauxiliary_larfb.cpp
+  # plane rotations
+  auxiliary/rocauxiliary_lasr.cpp
   # orthonormal/unitary matrices
   auxiliary/rocauxiliary_org2r_ung2r.cpp
   auxiliary/rocauxiliary_orgqr_ungqr.cpp
@@ -280,6 +289,16 @@ set(rocsolver_refact_source
 )
 
 set(rocsolver_specialized_source
+  # larf
+  specialized/rocauxiliary_larf_specialized_kernels_s.cpp
+  specialized/rocauxiliary_larf_specialized_kernels_d.cpp
+  specialized/rocauxiliary_larf_specialized_kernels_c.cpp
+  specialized/rocauxiliary_larf_specialized_kernels_z.cpp
+  # larfg
+  specialized/rocauxiliary_larfg_specialized_kernels_s.cpp
+  specialized/rocauxiliary_larfg_specialized_kernels_d.cpp
+  specialized/rocauxiliary_larfg_specialized_kernels_c.cpp
+  specialized/rocauxiliary_larfg_specialized_kernels_z.cpp
   # gemm
   specialized/roclapack_gemm_specialized_kernels_s.cpp
   specialized/roclapack_gemm_specialized_kernels_d.cpp
@@ -332,7 +351,9 @@ endif()
 
 set(auxiliaries
   common/buildinfo.cpp
+  common/rocsolver_handle.cpp
   common/rocsolver_logger.cpp
+  common/rocsparse.cpp
 )
 
 add_library(rocsolver
@@ -355,6 +376,10 @@ target_link_libraries(rocsolver
     $<$<PLATFORM_ID:Linux>:--rtlib=compiler-rt>
     $<$<PLATFORM_ID:Linux>:--unwindlib=libgcc>
 )
+
+if(NOT BUILD_WITH_SPARSE)
+  target_link_libraries(rocsolver PRIVATE $<$<PLATFORM_ID:Linux>:${CMAKE_DL_LIBS}>)
+endif()
 
 set(static_depends)
 
@@ -389,6 +414,10 @@ if(CMAKE_CXX_COMPILER MATCHES ".*clang\\+\\+.*")
   )
 endif()
 
+if(BUILD_OFFLOAD_COMPRESS)
+  target_compile_options(rocsolver PRIVATE "--offload-compress")
+endif()
+
 target_include_directories(rocsolver
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
@@ -420,13 +449,22 @@ if (BUILD_FILE_REORG_BACKWARD_COMPATIBILITY)
   )
 endif( )
 
-# Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
 if(NOT BUILD_SHARED_LIBS)
+  # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
   set_target_properties(rocsolver PROPERTIES PREFIX "lib")
+  target_compile_definitions(rocsolver PRIVATE ROCSOLVER_STATIC_LIB)
 endif()
 
 if(OPTIMAL)
   target_compile_definitions(rocsolver PRIVATE OPTIMAL)
+endif()
+
+if(ROCSOLVER_USE_INTERNAL_BLAS)
+  target_compile_definitions(rocsolver PRIVATE USE_INTERNAL_GEMM USE_INTERNAL_TRSM)
+endif()
+
+if(ROCSOLVER_USE_REFERENCE_SECULAR_EQUATIONS_SOLVER)
+  target_compile_definitions(rocsolver PRIVATE ROCSOLVER_USE_REFERENCE_SECULAR_EQUATIONS_SOLVER)
 endif()
 
 target_compile_definitions(rocsolver PRIVATE

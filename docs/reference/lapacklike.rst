@@ -5,7 +5,7 @@
 .. _lapack-like:
 
 ********************************
-rocSOLVER LAPACK-like Functions
+rocSOLVER LAPACK-like functions
 ********************************
 
 Other Lapack-like routines provided by rocSOLVER. These are divided into the following subcategories:
@@ -547,7 +547,7 @@ rocsolver_<type>syevdx_strided_batched()
 rocsolver_<type>heevdx()
 ---------------------------------------------------
 .. doxygenfunction:: rocsolver_zheevdx
-   :outline
+   :outline:
 .. doxygenfunction:: rocsolver_cheevdx
 
 rocsolver_<type>heevdx_batched()

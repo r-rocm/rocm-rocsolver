@@ -1,5 +1,5 @@
 # ##########################################################################
-# Copyright (C) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
+# Copyright (C) 2019-2025 Advanced Micro Devices, Inc. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -75,6 +75,7 @@ if(BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
     common/auxiliary/testing_larf.cpp
     common/auxiliary/testing_larft.cpp
     common/auxiliary/testing_larfb.cpp
+    common/auxiliary/testing_lasr.cpp
     common/auxiliary/testing_latrd.cpp
     common/auxiliary/testing_labrd.cpp
     common/auxiliary/testing_lauum.cpp
@@ -114,6 +115,7 @@ if(BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
     common/lapack/testing_getrs.cpp
     common/lapack/testing_gesv.cpp
     common/lapack/testing_gesvd.cpp
+    common/lapack/testing_gesdd.cpp
     common/lapack/testing_gesvdj.cpp
     common/lapack/testing_gesvdx.cpp
     common/lapack/testing_trtri.cpp
@@ -159,6 +161,7 @@ if(BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
     common/misc/clients_utility.cpp
     common/misc/program_options.cpp
     common/misc/client_environment_helpers.cpp
+    common/matrix_utils/matrix_utils.cpp
     ${rocauxiliary_inst_files}
     ${roclapack_inst_files}
     ${rocrefact_inst_files}
