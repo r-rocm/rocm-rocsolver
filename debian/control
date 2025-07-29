@@ -7,6 +7,7 @@ Build-Depends:
  debhelper-compat (= 13),
  cmake,
  libblas-dev,
+ libfmt-dev,
  pkg-config,
  rocm-cmake,
  rocm-core,
