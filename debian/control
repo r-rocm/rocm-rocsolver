@@ -15,6 +15,9 @@ Build-Depends:
  rocm-hip-on-rocclr-dev,
  rocm-llvm,
  rocm-rocblas-dev,
+ rocm-rocminfo,
+ rocm-rocprim-dev,
+ rocm-rocr-dev,
  rocm-rocsparse-dev,
 Standards-Version: 4.7.0
 Homepage: https://github.com/ROCm/rocSOLVER
